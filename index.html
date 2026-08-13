@@ -1,169 +1,207 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CodeType</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>typeApp — code muscle memory</title>
+<meta name="description" content="Type real code snippets and build syntax muscle memory." />
 
-<link rel="stylesheet" href="css/style.css">
-<link rel="stylesheet" href="css/themes.css">
-<link rel="stylesheet" href="css/mobile.css">
+<!-- Tailwind (CDN, config inline, no build step) -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          bg: "#0b0d10",
+          surface: "#12151a",
+          surface2: "#181c22",
+          edge: "#23282f",
+          ink: "#cdd3db",
+          dim: "#565e6a",
+          accent: "#6ee7d0",
+          accent2: "#a78bfa",
+          ok: "#7ee787",
+          err: "#ff6b6b",
+        },
+        fontFamily: {
+          mono: ["'JetBrains Mono'", "ui-monospace", "monospace"],
+          sans: ["'Inter'", "ui-sans-serif", "system-ui"],
+        },
+      },
+    },
+  };
+</script>
 
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+  rel="stylesheet"
+/>
+
+<link rel="stylesheet" href="css/style.css" />
 </head>
 
-<body class="theme-dark">
+<body class="bg-bg text-ink font-sans min-h-screen">
 
-<div class="container">
+<div class="scanline-overlay" aria-hidden="true"></div>
 
-    <header>
+<div class="max-w-4xl mx-auto px-4 py-8 md:py-12">
 
-        <h1>CodeType</h1>
+  <!-- Prompt-style header -->
+  <header class="mb-8 flex items-center justify-between">
+    <div class="font-mono text-sm md:text-base text-dim select-none">
+      <span class="text-accent">~</span>/typeApp
+      <span id="prompt-path" class="text-ink"></span>
+      <span class="cursor-caret" aria-hidden="true">▌</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <span class="hidden sm:inline text-xs text-dim font-mono">best</span>
+      <span id="best-wpm-badge" class="font-mono text-xs px-2 py-1 rounded border border-edge bg-surface text-accent">— wpm</span>
+    </div>
+  </header>
 
-        <div class="settings">
+  <!-- ===================== SCREEN 1: LANGUAGE PICKER ===================== -->
+  <section id="picker-screen">
+    <h1 class="font-mono text-2xl md:text-3xl font-semibold text-ink mb-1">
+      choose a language<span class="text-accent">.</span>
+    </h1>
+    <p class="text-dim text-sm mb-8">Pick a file to start typing. More languages and snippets can be dropped into <code class="text-accent2 font-mono">js/data/snippets.js</code> anytime.</p>
 
-            <div class="languages">
+    <div id="language-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <!-- language file-cards injected by ui.js -->
+    </div>
+  </section>
 
-                <button class="language-btn" data-language="cpp">
-                    C++
-                </button>
+  <!-- ===================== SCREEN 2: TYPING TEST ===================== -->
+  <section id="typing-screen" class="hidden">
 
-                <button class="language-btn" data-language="python">
-                    Python
-                </button>
+    <!-- Controls -->
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+      <div class="flex items-center gap-2">
+        <label for="language-select" class="text-xs text-dim font-mono">lang</label>
+        <select
+          id="language-select"
+          class="bg-surface border border-edge text-ink text-sm rounded px-2 py-1.5 font-mono focus:outline-none focus:ring-1 focus:ring-accent"
+        ></select>
+      </div>
 
-                <button class="language-btn" data-language="javascript">
-                    JavaScript
-                </button>
+      <div class="flex items-center gap-2">
+        <button
+          id="back-to-picker"
+          class="text-xs font-mono text-dim hover:text-ink border border-edge rounded px-3 py-1.5 transition-colors"
+        >
+          ← files
+        </button>
+        <button
+          id="reset-btn"
+          class="text-xs font-mono text-bg bg-accent hover:opacity-90 rounded px-3 py-1.5 transition-opacity font-medium"
+          title="Restart this snippet (Tab)"
+        >
+          ⟲ restart <kbd class="hidden sm:inline opacity-70">tab</kbd>
+        </button>
+      </div>
+    </div>
 
-                <button class="language-btn" data-language="csharp">
-                    C#
-                </button>
+    <!-- Editor pane -->
+    <div class="bg-surface border border-edge rounded-lg overflow-hidden shadow-2xl shadow-black/40 mb-4">
 
-            </div>
+      <!-- fake editor titlebar -->
+      <div class="flex items-center gap-2 px-4 py-2.5 bg-surface2 border-b border-edge">
+        <span class="w-2.5 h-2.5 rounded-full bg-err/70"></span>
+        <span class="w-2.5 h-2.5 rounded-full bg-ok/50"></span>
+        <span class="w-2.5 h-2.5 rounded-full bg-accent/50"></span>
+        <span id="editor-filename" class="ml-3 text-xs font-mono text-dim">snippet.txt</span>
+      </div>
 
-            <div class="times">
+      <!-- snippet with gutter -->
+      <div class="flex text-sm md:text-base leading-relaxed">
+        <div id="line-gutter" class="select-none text-right px-3 py-5 text-dim/60 font-mono bg-surface2/40 border-r border-edge"></div>
+        <pre id="snippet" tabindex="0"
+          class="flex-1 px-4 py-5 font-mono whitespace-pre-wrap break-words outline-none overflow-x-auto"
+          aria-label="Code snippet to type"
+        ></pre>
+      </div>
 
-                <button class="time-btn" data-time="15">
-                    15s
-                </button>
+      <!-- hidden capture field: keeps mobile keyboards + IME working -->
+      <textarea
+        id="typing-input"
+        class="sr-only"
+        autocomplete="off"
+        autocapitalize="off"
+        autocorrect="off"
+        spellcheck="false"
+        aria-hidden="true"
+        tabindex="-1"
+      ></textarea>
 
-                <button class="time-btn" data-time="30">
-                    30s
-                </button>
-
-                <button class="time-btn active" data-time="60">
-                    60s
-                </button>
-
-                <button class="time-btn" data-time="120">
-                    120s
-                </button>
-
-            </div>
-
+      <!-- status bar (signature element) -->
+      <div class="flex items-stretch justify-between text-xs font-mono bg-accent text-bg">
+        <div class="flex">
+          <div class="px-3 py-1.5 flex items-center gap-1.5 border-r border-bg/20">
+            <span class="opacity-70">wpm</span><span id="wpm" class="font-semibold">0</span>
+          </div>
+          <div class="px-3 py-1.5 flex items-center gap-1.5 border-r border-bg/20">
+            <span class="opacity-70">acc</span><span id="accuracy" class="font-semibold">100%</span>
+          </div>
+          <div class="px-3 py-1.5 flex items-center gap-1.5 border-r border-bg/20">
+            <span class="opacity-70">err</span><span id="errors" class="font-semibold">0</span>
+          </div>
         </div>
-
-        <div class="theme-selector">
-
-            <button id="dark-theme">
-                Dark
-            </button>
-
-            <button id="light-theme">
-                Light
-            </button>
-
-            <button id="dracula-theme">
-                Dracula
-            </button>
-
+        <div class="px-3 py-1.5 flex items-center gap-1.5">
+          <span id="timer" class="font-semibold">0.0s</span>
         </div>
+      </div>
+    </div>
 
-    </header>
+    <p id="typing-hint" class="text-center text-dim text-xs font-mono">click the code above and start typing to begin</p>
+  </section>
 
-    <main>
+  <!-- ===================== SCREEN 3: RESULTS ===================== -->
+  <section id="results-screen" class="hidden text-center">
+    <p class="font-mono text-accent text-xs mb-2 tracking-wide">// run complete</p>
+    <h1 class="font-mono text-3xl md:text-4xl font-bold mb-8">nice typing.</h1>
 
-        <section id="snippet-container">
+    <div class="grid grid-cols-3 gap-3 mb-8 max-w-md mx-auto">
+      <div class="bg-surface border border-edge rounded-lg py-5">
+        <div id="result-wpm" class="font-mono text-3xl font-bold text-accent">0</div>
+        <div class="text-xs text-dim mt-1 font-mono">wpm</div>
+      </div>
+      <div class="bg-surface border border-edge rounded-lg py-5">
+        <div id="result-accuracy" class="font-mono text-3xl font-bold text-ok">100%</div>
+        <div class="text-xs text-dim mt-1 font-mono">accuracy</div>
+      </div>
+      <div class="bg-surface border border-edge rounded-lg py-5">
+        <div id="result-errors" class="font-mono text-3xl font-bold text-err">0</div>
+        <div class="text-xs text-dim mt-1 font-mono">errors</div>
+      </div>
+    </div>
 
-            <pre id="snippet">
+    <p id="result-best-note" class="text-dim text-sm font-mono mb-8"></p>
 
-Loading snippet... </pre>
+    <div class="flex items-center justify-center gap-3">
+      <button id="retry-btn" class="font-mono text-sm bg-accent text-bg rounded px-4 py-2 font-medium hover:opacity-90">
+        ⟲ retry
+      </button>
+      <button id="new-snippet-btn" class="font-mono text-sm border border-edge text-ink rounded px-4 py-2 hover:border-accent">
+        next snippet →
+      </button>
+    </div>
+  </section>
 
-        </section>
-
-        <section id="typing-section">
-
-            <textarea
-                id="typing-input"
-                placeholder="Start typing the code here..."
-                autocomplete="off"
-                spellcheck="false">
-            </textarea>
-
-    <button id="submit-test">
-    Submit Test
-    </button>
-
-        </section>
-
-    </main>
-
-    <footer>
-
-        <div class="stat-box">
-
-            <span>WPM</span>
-
-            <h2 id="wpm">0</h2>
-
-        </div>
-
-        <div class="stat-box">
-
-            <span>Accuracy</span>
-
-            <h2 id="accuracy">100%</h2>
-
-        </div>
-
-        <div class="stat-box">
-
-            <span>Errors</span>
-
-            <h2 id="errors">0</h2>
-
-        </div>
-
-        <div class="stat-box">
-
-            <span>Time</span>
-
-            <h2 id="timer">60</h2>
-
-        </div>
-
-        <div class="stat-box">
-
-            <span>Best WPM</span>
-
-            <h2 id="best-wpm">0</h2>
-
-        </div>
-
-    </footer>
+  <footer class="mt-12 text-center text-dim text-xs font-mono">
+    built for typing practice, not for production. tab = restart.
+  </footer>
 
 </div>
 
-<!-- Core Modules -->
-
-<script src="js/snippets.js"></script>
-<script src="js/ui.js"></script>
+<!-- ===================== SCRIPTS ===================== -->
+<script src="js/data/snippets.js"></script>
 <script src="js/stats.js"></script>
-<script src="js/timer.js"></script>
 <script src="js/storage.js"></script>
-<script src="js/typing.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/typingEngine.js"></script>
 <script src="js/app.js"></script>
-
 </body>
 </html>
