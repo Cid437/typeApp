@@ -1,0 +1,44 @@
+@media screen and (max-width: 768px) {
+
+    body {
+        align-items: flex-start;
+    }
+
+    .container {
+        width: 100%;
+        padding: 15px;
+    }
+
+    .settings {
+        flex-direction: column;
+    }
+
+    .languages,
+    .times {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    button {
+        flex: 1;
+        min-width: 80px;
+    }
+
+    #snippet {
+        font-size: 0.9rem;
+        line-height: 1.6;
+    }
+
+    #typing-input {
+        height: 220px;
+        font-size: 0.95rem;
+    }
+
+    footer {
+        flex-direction: column;
+    }
+
+    .stat-box {
+        width: 100%;
+    }
+}

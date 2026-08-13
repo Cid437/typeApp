@@ -1,0 +1,28 @@
+code-type/
+│
+├── index.html
+├── css/
+│   ├── style.css
+│   ├── mobile.css
+│   └── themes.css
+│
+├── js/
+│   ├── app.js
+│   ├── typing.js
+│   ├── stats.js
+│   ├── snippets.js
+│   ├── timer.js
+│   ├── ui.js
+│   └── storage.js
+│
+├── data/
+│   ├── cpp.json
+│   ├── python.json
+│   ├── javascript.json
+│   └── csharp.json
+│
+├── assets/
+│   ├── icons/
+│   └── sounds/
+│
+└── README.md
