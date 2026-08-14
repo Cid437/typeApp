@@ -77,6 +77,12 @@ function setEditorFilename(languageId) {
   el.textContent = `snippet${SNIPPET_DATA[languageId].extension}`;
 }
 
+/** Shows the one-line "what this code does" teaser above the editor. */
+function renderSnippetDescription(description) {
+  const el = document.getElementById("snippet-description");
+  el.textContent = description ? `// ${description}` : "";
+}
+
 /**
  * Renders the target snippet as individual <span> characters, applying a
  * class per character based on what's been typed so far:
@@ -142,11 +148,14 @@ function updateBestBadge(wpm) {
 }
 
 /** Populates the results screen after a completed test. */
-function renderResults({ wpm, accuracy, errors, isNewBest }) {
+function renderResults({ wpm, accuracy, errors, isNewBest, explanation, output }) {
   document.getElementById("result-wpm").textContent = wpm;
   document.getElementById("result-accuracy").textContent = `${accuracy}%`;
   document.getElementById("result-errors").textContent = errors;
 
   const note = document.getElementById("result-best-note");
   note.textContent = isNewBest ? "★ new personal best" : "";
+
+  document.getElementById("result-explanation").textContent = explanation || "";
+  document.getElementById("result-output").textContent = output || "";
 }

@@ -10,6 +10,9 @@
 const engine = {
   languageId: null,
   target: "",
+  description: "",
+  explanation: "",
+  output: "",
   typedChars: [],
   startTime: null,
   intervalHandle: null,
@@ -39,12 +42,18 @@ function initTypingEngine({ onFinish }) {
   snippetEl.addEventListener("focus", () => inputEl.focus());
 }
 
-/** Loads a fresh snippet into the engine and resets all test state. */
-function loadSnippet(languageId, snippetText) {
+/**
+ * Loads a fresh snippet into the engine and resets all test state.
+ * `snippet` is the full data object: { code, description, explanation, output }.
+ */
+function loadSnippet(languageId, snippet) {
   stopTimer();
 
   engine.languageId = languageId;
-  engine.target = snippetText;
+  engine.target = snippet.code;
+  engine.description = snippet.description;
+  engine.explanation = snippet.explanation;
+  engine.output = snippet.output;
   engine.typedChars = [];
   engine.startTime = null;
   engine.totalKeystrokes = 0;
@@ -54,6 +63,7 @@ function loadSnippet(languageId, snippetText) {
   inputEl.value = "";
   inputEl.disabled = false;
 
+  renderSnippetDescription(snippet.description);
   renderSnippet(engine.target, engine.typedChars);
   updateStatsDisplay({ wpm: 0, accuracy: 100, errors: 0, seconds: 0 });
   setTypingHintVisible(true);
@@ -61,7 +71,12 @@ function loadSnippet(languageId, snippetText) {
 
 /** Restarts the current snippet from scratch (Tab shortcut / Reset button). */
 function restartSnippet() {
-  loadSnippet(engine.languageId, engine.target);
+  loadSnippet(engine.languageId, {
+    code: engine.target,
+    description: engine.description,
+    explanation: engine.explanation,
+    output: engine.output,
+  });
   inputEl.focus();
 }
 
@@ -154,6 +169,14 @@ function finishTest() {
   const isNewBest = saveBestWPM(engine.languageId, wpm);
 
   if (engine.onFinish) {
-    engine.onFinish({ languageId: engine.languageId, wpm, accuracy, errors, isNewBest });
+    engine.onFinish({
+      languageId: engine.languageId,
+      wpm,
+      accuracy,
+      errors,
+      isNewBest,
+      explanation: engine.explanation,
+      output: engine.output,
+    });
   }
 }

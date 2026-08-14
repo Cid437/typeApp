@@ -42,9 +42,9 @@ function loadNextSnippet() {
 }
 
 /** Called by the typing engine once a snippet has been fully typed. */
-function handleTestFinished({ languageId, wpm, accuracy, errors, isNewBest }) {
+function handleTestFinished({ languageId, wpm, accuracy, errors, isNewBest, explanation, output }) {
   updateBestBadge(getBestWPM(languageId));
-  renderResults({ wpm, accuracy, errors, isNewBest });
+  renderResults({ wpm, accuracy, errors, isNewBest, explanation, output });
   showScreen("results");
 }
 

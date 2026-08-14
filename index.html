@@ -104,6 +104,9 @@
       </div>
     </div>
 
+    <!-- One-line "what this code does" teaser, shown before typing -->
+    <p id="snippet-description" class="text-dim text-xs font-mono mb-3"></p>
+
     <!-- Editor pane -->
     <div class="bg-surface border border-edge rounded-lg overflow-hidden shadow-2xl shadow-black/40 mb-4">
 
@@ -179,6 +182,15 @@
     </div>
 
     <p id="result-best-note" class="text-dim text-sm font-mono mb-8"></p>
+
+    <!-- What-it-does + sample output, revealed now that the snippet is typed -->
+    <div class="max-w-lg mx-auto mb-8 text-left">
+      <p class="text-xs font-mono text-accent2 mb-1.5">// what that code does</p>
+      <p id="result-explanation" class="text-ink text-sm leading-relaxed mb-5"></p>
+
+      <p class="text-xs font-mono text-accent2 mb-1.5">$ sample output</p>
+      <pre id="result-output" class="bg-surface border border-edge rounded-lg px-4 py-3 font-mono text-xs md:text-sm text-ok whitespace-pre-wrap overflow-x-auto"></pre>
+    </div>
 
     <div class="flex items-center justify-center gap-3">
       <button id="retry-btn" class="font-mono text-sm bg-accent text-bg rounded px-4 py-2 font-medium hover:opacity-90">
