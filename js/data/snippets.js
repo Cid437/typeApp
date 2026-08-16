@@ -8,12 +8,14 @@
  *   - description:     one short line shown above the editor before typing
  *   - explanation:     a longer write-up shown on the results screen
  *   - output:          a narrated sample of what running the code produces
- *                       (may include comments/setup — for the results screen)
+ *                       (may include comments/setup — for the results screen,
+ *                       and as the pre-typing output panel's fallback)
  *   - predictedOutput: OPTIONAL. The exact literal text the snippet prints
  *                       when run, with no comments or narration. Only
  *                       snippets whose `code` actually calls something like
- *                       console.log/print/cout get this field — it's what
- *                       "Output" mode asks the user to type from memory.
+ *                       console.log/print/cout get this field. When present,
+ *                       it's shown (instead of `output`) above the editor
+ *                       before typing starts, in every mode.
  *   - level:            "beginner" | "easy" | "intermediate" | "advanced" | "expert"
  *
  * Snippets within each language are ordered from easiest to hardest —
@@ -27,7 +29,7 @@
  * object into that language's `snippets` array, keeping the array sorted
  * from "beginner" to "expert" so the progression path stays coherent.
  * Add `predictedOutput` only if the snippet's code literally prints
- * something on its own — Output mode filters to those automatically.
+ * something on its own.
  * -----------------------------------------------------------------------
  */
 
@@ -258,6 +260,18 @@ print(favorite.upper())`,
         predictedOutput: `PYTHON`,
       },
       {
+        level: "beginner",
+        code:
+`pi = 3.14159
+radius = 4
+print(pi * radius ** 2)`,
+        description: "Computes and prints the area of a circle.",
+        explanation:
+          "radius ** 2 raises radius to the power of 2 using Python's exponent operator, then multiplies by pi. Operator precedence means ** binds tighter than *, so the squaring happens before the multiplication.",
+        output: `50.26544`,
+        predictedOutput: `50.26544`,
+      },
+      {
         level: "easy",
         code:
 `age = 20
@@ -306,6 +320,24 @@ print(total)`,
         predictedOutput: `10`,
       },
       {
+        level: "easy",
+        code:
+`fruits = ["apple", "banana", "cherry"]
+for fruit in fruits:
+    print(fruit.upper())`,
+        description: "Loops over a list and prints each item in uppercase.",
+        explanation:
+          "The for loop binds fruit to each element of the fruits list in turn. .upper() is a string method that returns a new, all-caps copy of the string — it doesn't modify the original list.",
+        output:
+`APPLE
+BANANA
+CHERRY`,
+        predictedOutput:
+`APPLE
+BANANA
+CHERRY`,
+      },
+      {
         level: "intermediate",
         code:
 `def add(a, b):
@@ -341,6 +373,20 @@ print(evens)`,
           "is_even returns True or False depending on whether n divides evenly by 2. filter() applies that function to every value in range(10) and keeps only the ones it returns True for, and list() turns the resulting filter object into a concrete list.",
         output: `[0, 2, 4, 6, 8]`,
         predictedOutput: `[0, 2, 4, 6, 8]`,
+      },
+      {
+        level: "intermediate",
+        code:
+`def is_palindrome(s):
+    s = s.lower()
+    return s == s[::-1]
+
+print(is_palindrome("Racecar"))`,
+        description: "Checks whether a string reads the same backwards.",
+        explanation:
+          "s[::-1] uses Python's extended slice syntax to reverse the string, and comparing it to the lowercased original tells you whether the text is a palindrome. Lowercasing first keeps the check case-insensitive.",
+        output: `True`,
+        predictedOutput: `True`,
       },
       {
         level: "advanced",
@@ -386,6 +432,19 @@ n.next   # None`,
         output:
 `acct = BankAccount(100)
 acct.deposit(50)  # 150`,
+      },
+      {
+        level: "advanced",
+        code:
+`from collections import Counter
+
+words = "the cat sat on the mat".split()
+print(Counter(words))`,
+        description: "Counts word frequency using the collections module.",
+        explanation:
+          "split() breaks the sentence into a list of words on whitespace, and Counter tallies how many times each distinct item appears, returning a dict-like object ordered by first occurrence. It's the standard tool for frequency counting in Python.",
+        output: `Counter({'the': 2, 'cat': 1, 'sat': 1, 'on': 1, 'mat': 1})`,
+        predictedOutput: `Counter({'the': 2, 'cat': 1, 'sat': 1, 'on': 1, 'mat': 1})`,
       },
       {
         level: "expert",
@@ -436,6 +495,27 @@ def fib(n):
         description: "A memoized recursive Fibonacci function using a decorator.",
         explanation:
           "@lru_cache wraps fib so that once it's been called with a given n, the result is cached and instantly returned next time instead of being recomputed. That turns an otherwise exponential-time recursive Fibonacci into an effectively linear-time one, since each n is only ever computed once.",
+        output:
+`fib(30)
+# 832040`,
+      },
+      {
+        level: "expert",
+        code:
+`def memoize(func):
+    cache = {}
+    def wrapper(n):
+        if n not in cache:
+            cache[n] = func(n)
+        return cache[n]
+    return wrapper
+
+@memoize
+def fib(n):
+    return n if n < 2 else fib(n - 1) + fib(n - 2)`,
+        description: "A hand-written memoizing decorator that caches recursive results.",
+        explanation:
+          "memoize wraps fib in a closure holding a cache dict; before recomputing fib(n), wrapper checks whether that result is already cached and reuses it if so. Applied to naive recursive Fibonacci, this turns an exponential-time function into a linear-time one by never solving the same subproblem twice — the same idea functools.lru_cache automates for you.",
         output:
 `fib(30)
 # 832040`,
@@ -731,21 +811,4 @@ function getRandomSnippet(languageId) {
 function getSortedSnippets(languageId) {
   const pool = SNIPPET_DATA[languageId].snippets;
   return [...pool].sort((a, b) => LEVEL_ORDER.indexOf(a.level) - LEVEL_ORDER.indexOf(b.level));
-}
-
-/**
- * Returns only the snippets in a language whose code actually prints
- * something (i.e. they carry a `predictedOutput`) — the pool Output mode
- * draws from, since you can't predict the output of a bare class/struct
- * definition that never gets called.
- */
-function getOutputEligibleSnippets(languageId) {
-  return SNIPPET_DATA[languageId].snippets.filter((s) => !!s.predictedOutput);
-}
-
-/** Returns a random output-eligible snippet for a language, or null if it has none. */
-function getRandomOutputSnippet(languageId) {
-  const pool = getOutputEligibleSnippets(languageId);
-  if (pool.length === 0) return null;
-  return pool[Math.floor(Math.random() * pool.length)];
 }

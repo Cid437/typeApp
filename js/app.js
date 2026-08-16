@@ -9,8 +9,9 @@
  *   - "random"      pulls any snippet from the language's pool each time.
  *   - "progression" walks the language's snippets easiest -> hardest,
  *                    remembering per-language progress in localStorage.
- *   - "output"      shows the target output up front; you type the code
- *                    that produces it, reinforcing the code <-> output link.
+ *
+ * The sample output for a snippet is always shown above the editor before
+ * typing starts, in every mode — it's not gated behind a separate mode.
  * -----------------------------------------------------------------------
  */
 
@@ -19,6 +20,7 @@ let currentMode = "random";
 
 document.addEventListener("DOMContentLoaded", () => {
   currentMode = getPracticeMode();
+  if (currentMode !== "progression") currentMode = "random"; // guards against a stale/removed mode value
 
   initTypingEngine({ onFinish: handleTestFinished });
   initModeToggle(currentMode, onModeChange);
@@ -45,23 +47,12 @@ function handleResetProgress(languageId) {
  * current practice mode.
  *   - "progression" resumes from the saved index, easiest -> hardest.
  *   - "random" picks any snippet from the language's full pool.
- *   - "output" picks only from snippets that carry a `predictedOutput`
- *     (i.e. their code actually prints something to show as the goal).
  */
 function pickSnippet(languageId) {
   if (currentMode === "progression") {
     const sorted = getSortedSnippets(languageId);
     const idx = Math.min(getProgressIndex(languageId), sorted.length - 1);
     return { snippet: sorted[idx], meta: { mode: "progression", index: idx, total: sorted.length } };
-  }
-
-  if (currentMode === "output") {
-    const snippet = getRandomOutputSnippet(languageId);
-    const total = getOutputEligibleSnippets(languageId).length;
-    // Picker cards + dropdown already keep output-ineligible languages out
-    // of reach, but fall back to random practice if this is ever hit anyway.
-    if (!snippet) return { snippet: getRandomSnippet(languageId), meta: { mode: "random", index: null, total: SNIPPET_DATA[languageId].snippets.length } };
-    return { snippet, meta: { mode: "output", index: null, total } };
   }
 
   const total = SNIPPET_DATA[languageId].snippets.length;
@@ -74,7 +65,7 @@ function startLanguage(languageId) {
 
   const { snippet, meta } = pickSnippet(languageId);
 
-  renderLanguageDropdown(languageId, onLanguageDropdownChange, currentMode);
+  renderLanguageDropdown(languageId, onLanguageDropdownChange);
   updatePromptPath(languageId);
   setEditorFilename(languageId);
   updateBestBadge(getBestWPM(languageId));
@@ -83,6 +74,7 @@ function startLanguage(languageId) {
   loadSnippet(languageId, snippet, meta);
 
   showScreen("typing");
+  focusTypingInput();
 }
 
 /** Fired when the in-test language dropdown changes. */
@@ -100,6 +92,7 @@ function loadNextSnippet() {
   showTrackCompleteNote(false);
   loadSnippet(currentLanguageId, snippet, meta);
   showScreen("typing");
+  focusTypingInput();
 }
 
 /**
@@ -145,8 +138,8 @@ document.getElementById("back-to-picker").addEventListener("click", () => {
 });
 
 document.getElementById("retry-btn").addEventListener("click", () => {
-  restartSnippet();
   showScreen("typing");
+  restartSnippet();
 });
 
 document.getElementById("new-snippet-btn").addEventListener("click", () => {

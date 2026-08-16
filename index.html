@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>typeApp — code muscle memory</title>
+<title>typeApp: code muscle memory</title>
 <meta name="description" content="Type real code snippets and build syntax muscle memory." />
 
 <!-- Tailwind (CDN, config inline, no build step) -->
@@ -77,7 +77,6 @@
       <div id="mode-toggle" class="inline-flex items-center gap-1">
         <button type="button" data-mode="random" class="mode-btn">[ practice ]</button>
         <button type="button" data-mode="progression" class="mode-btn">[ progression ]</button>
-        <button type="button" data-mode="output" class="mode-btn">[ output ]</button>
       </div>
     </div>
     <p id="mode-hint" class="text-dim text-xs mb-6"></p>
@@ -120,9 +119,9 @@
     <!-- Track-complete note, shown once after finishing a language's last snippet -->
     <p id="track-complete-note" class="hidden text-accent text-xs mb-2">*** track complete — looping back to the basics ***</p>
 
-    <!-- Output Challenge: the target output is shown up front as the goal -->
+    <!-- Sample output, shown up front for every snippet regardless of mode -->
     <div id="output-goal" class="hidden mb-4">
-      <p class="text-xs text-accent2 tracking-wide mb-1.5">target output — type the code that produces this</p>
+      <p class="text-xs text-accent2 tracking-wide mb-1.5">output — this is what the code below produces</p>
       <pre id="output-goal-text" class="terminal-frame bg-surface px-4 py-3 text-xs md:text-sm text-ok whitespace-pre-wrap overflow-x-auto"></pre>
     </div>
 
@@ -181,7 +180,7 @@
       </div>
     </div>
 
-    <p id="typing-hint" class="text-center text-dim text-xs">click the code above and start typing to begin</p>
+    <p id="typing-hint" class="text-center text-dim text-xs">start typing to begin</p>
   </section>
 
   <!-- ===================== SCREEN 3: RESULTS ===================== -->

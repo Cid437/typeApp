@@ -37,15 +37,10 @@ function renderLanguagePicker(onSelect, mode, onResetProgress) {
 
     let subtitle;
     let clearedCount = 0;
-    let disabled = false;
     if (mode === "progression") {
       const idx = Math.min(getProgressIndex(id), total - 1);
       clearedCount = idx;
       subtitle = `${idx + 1} / ${total} \u00b7 next up`;
-    } else if (mode === "output") {
-      const eligible = getOutputEligibleSnippets(id).length;
-      disabled = eligible === 0;
-      subtitle = disabled ? "no output challenges yet" : `${eligible} output challenges`;
     } else {
       subtitle = `${total} snippets`;
     }
@@ -58,11 +53,6 @@ function renderLanguagePicker(onSelect, mode, onResetProgress) {
     card.className = "file-card flex-1";
     card.setAttribute("aria-label", `Practice ${lang.name}`);
 
-    if (disabled) {
-      card.disabled = true;
-      card.classList.add("file-card--disabled");
-    }
-
     card.innerHTML = `
       <span class="ext-badge" style="color:${lang.accent}; background:${lang.accent}1a;">
         ${lang.extension}
@@ -74,9 +64,7 @@ function renderLanguagePicker(onSelect, mode, onResetProgress) {
       <span class="text-dim text-lg leading-none">→</span>
     `;
 
-    if (!disabled) {
-      card.addEventListener("click", () => onSelect(id));
-    }
+    card.addEventListener("click", () => onSelect(id));
     row.appendChild(card);
 
     if (mode === "progression" && clearedCount > 0 && onResetProgress) {
@@ -113,29 +101,18 @@ function setModeToggleUI(mode) {
   });
 
   const hint = document.getElementById("mode-hint");
-  if (mode === "progression") {
-    hint.textContent = "easiest \u2192 hardest, picking up where you left off";
-  } else if (mode === "output") {
-    hint.textContent = "see the target output first, then type the code that produces it";
-  } else {
-    hint.textContent = "a random snippet each time";
-  }
+  hint.textContent =
+    mode === "progression"
+      ? "easiest \u2192 hardest, picking up where you left off"
+      : "a random snippet each time";
 }
 
-/**
- * Fills the in-test language <select> dropdown and wires its change handler.
- * In Output mode, languages with no output-eligible snippets are left out
- * entirely, since there'd be nothing to switch to.
- */
-function renderLanguageDropdown(currentId, onChange, mode) {
+/** Fills the in-test language <select> dropdown and wires its change handler. */
+function renderLanguageDropdown(currentId, onChange) {
   const select = document.getElementById("language-select");
   select.innerHTML = "";
 
-  const ids = mode === "output"
-    ? LANGUAGE_ORDER.filter((id) => getOutputEligibleSnippets(id).length > 0)
-    : LANGUAGE_ORDER;
-
-  ids.forEach((id) => {
+  LANGUAGE_ORDER.forEach((id) => {
     const opt = document.createElement("option");
     opt.value = id;
     opt.textContent = SNIPPET_DATA[id].name;
@@ -165,14 +142,16 @@ function renderSnippetDescription(description) {
 }
 
 /**
- * Output Challenge mode shows the target output *before* typing, so the
- * exercise becomes "reproduce the code that makes this" rather than
- * "here's a hint, now type". Hidden entirely outside that mode.
+ * Shows the sample output above the editor, before typing starts — for
+ * every mode, not just one. Falls back gracefully if a snippet has no
+ * output at all (shouldn't happen in practice, since every snippet has
+ * at least a narrated `output`).
  */
-function renderOutputGoal(output, visible) {
+function renderOutputGoal(output) {
   const wrap = document.getElementById("output-goal");
-  wrap.classList.toggle("hidden", !visible);
-  document.getElementById("output-goal-text").textContent = visible ? output || "" : "";
+  const hasOutput = !!output;
+  wrap.classList.toggle("hidden", !hasOutput);
+  document.getElementById("output-goal-text").textContent = hasOutput ? output : "";
 }
 
 /**

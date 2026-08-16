@@ -13,9 +13,9 @@ const engine = {
   description: "",
   explanation: "",
   output: "",
-  predictedOutput: "", // exact literal output — what Output mode shows as the goal
+  predictedOutput: "", // exact literal output, shown above the editor when present
   level: "beginner",
-  mode: "random",       // "random" | "progression" | "output" — echoed back via onFinish
+  mode: "random",       // "random" | "progression" — echoed back via onFinish
   progressIndex: null,  // this snippet's index in the sorted track (progression only)
   progressTotal: null,  // track length (progression only)
   typedChars: [],
@@ -77,11 +77,21 @@ function loadSnippet(languageId, snippet, meta = { mode: "random", index: null, 
   inputEl.disabled = false;
 
   renderSnippetDescription(engine.description);
-  renderOutputGoal(engine.predictedOutput, engine.mode === "output");
+  renderOutputGoal(engine.predictedOutput || engine.output);
   renderLevelBadge({ level: engine.level, mode: engine.mode, index: engine.progressIndex, total: engine.progressTotal });
   renderSnippet(engine.target, engine.typedChars);
   updateStatsDisplay({ wpm: 0, accuracy: 100, errors: 0, seconds: 0 });
   setTypingHintVisible(true);
+}
+
+/**
+ * Focuses the hidden capture field so the person can start typing right
+ * away after picking a language/snippet — no click into the editor first.
+ * Called after the typing screen becomes visible (a hidden textarea can't
+ * take focus, so this must run after showScreen("typing")).
+ */
+function focusTypingInput() {
+  if (inputEl) inputEl.focus();
 }
 
 /** Restarts the current snippet from scratch (Tab shortcut / Reset button). */
