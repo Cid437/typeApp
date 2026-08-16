@@ -13,6 +13,11 @@ const engine = {
   description: "",
   explanation: "",
   output: "",
+  predictedOutput: "", // exact literal output — what Output mode shows as the goal
+  level: "beginner",
+  mode: "random",       // "random" | "progression" | "output" — echoed back via onFinish
+  progressIndex: null,  // this snippet's index in the sorted track (progression only)
+  progressTotal: null,  // track length (progression only)
   typedChars: [],
   startTime: null,
   intervalHandle: null,
@@ -44,9 +49,11 @@ function initTypingEngine({ onFinish }) {
 
 /**
  * Loads a fresh snippet into the engine and resets all test state.
- * `snippet` is the full data object: { code, description, explanation, output }.
+ * `snippet` is the full data object: { code, level, description, explanation, output, predictedOutput }.
+ * `meta` describes how it was selected: { mode, index, total }, where
+ * index/total are only meaningful in "progression" mode.
  */
-function loadSnippet(languageId, snippet) {
+function loadSnippet(languageId, snippet, meta = { mode: "random", index: null, total: null }) {
   stopTimer();
 
   engine.languageId = languageId;
@@ -54,6 +61,12 @@ function loadSnippet(languageId, snippet) {
   engine.description = snippet.description;
   engine.explanation = snippet.explanation;
   engine.output = snippet.output;
+  engine.predictedOutput = snippet.predictedOutput || "";
+  engine.level = snippet.level;
+  engine.mode = meta.mode;
+  engine.progressIndex = meta.index;
+  engine.progressTotal = meta.total;
+
   engine.typedChars = [];
   engine.startTime = null;
   engine.totalKeystrokes = 0;
@@ -63,7 +76,9 @@ function loadSnippet(languageId, snippet) {
   inputEl.value = "";
   inputEl.disabled = false;
 
-  renderSnippetDescription(snippet.description);
+  renderSnippetDescription(engine.description);
+  renderOutputGoal(engine.predictedOutput, engine.mode === "output");
+  renderLevelBadge({ level: engine.level, mode: engine.mode, index: engine.progressIndex, total: engine.progressTotal });
   renderSnippet(engine.target, engine.typedChars);
   updateStatsDisplay({ wpm: 0, accuracy: 100, errors: 0, seconds: 0 });
   setTypingHintVisible(true);
@@ -71,12 +86,19 @@ function loadSnippet(languageId, snippet) {
 
 /** Restarts the current snippet from scratch (Tab shortcut / Reset button). */
 function restartSnippet() {
-  loadSnippet(engine.languageId, {
-    code: engine.target,
-    description: engine.description,
-    explanation: engine.explanation,
-    output: engine.output,
-  });
+  showTrackCompleteNote(false);
+  loadSnippet(
+    engine.languageId,
+    {
+      code: engine.target,
+      level: engine.level,
+      description: engine.description,
+      explanation: engine.explanation,
+      output: engine.output,
+      predictedOutput: engine.predictedOutput,
+    },
+    { mode: engine.mode, index: engine.progressIndex, total: engine.progressTotal }
+  );
   inputEl.focus();
 }
 
@@ -177,6 +199,9 @@ function finishTest() {
       isNewBest,
       explanation: engine.explanation,
       output: engine.output,
+      mode: engine.mode,
+      progressIndex: engine.progressIndex,
+      progressTotal: engine.progressTotal,
     });
   }
 }

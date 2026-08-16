@@ -13,20 +13,22 @@
     theme: {
       extend: {
         colors: {
-          bg: "#0b0d10",
-          surface: "#12151a",
-          surface2: "#181c22",
-          edge: "#23282f",
-          ink: "#cdd3db",
-          dim: "#565e6a",
-          accent: "#6ee7d0",
-          accent2: "#a78bfa",
-          ok: "#7ee787",
-          err: "#ff6b6b",
+          bg: "#15120d",
+          surface: "#1c1811",
+          surface2: "#241f16",
+          edge: "#3d3423",
+          ink: "#e9dfc7",
+          dim: "#8a7f66",
+          accent: "#e0a640",
+          accent2: "#8fbf6a",
+          ok: "#8fbf6a",
+          err: "#d1573f",
         },
         fontFamily: {
+          // Committing to one monospace family everywhere — headings,
+          // body copy, and code all share the same terminal voice.
           mono: ["'JetBrains Mono'", "ui-monospace", "monospace"],
-          sans: ["'Inter'", "ui-sans-serif", "system-ui"],
+          sans: ["'JetBrains Mono'", "ui-monospace", "monospace"],
         },
       },
     },
@@ -36,14 +38,14 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link
-  href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+  href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&display=swap"
   rel="stylesheet"
 />
 
 <link rel="stylesheet" href="css/style.css" />
 </head>
 
-<body class="bg-bg text-ink font-sans min-h-screen">
+<body class="bg-bg text-ink font-mono min-h-screen">
 
 <div class="scanline-overlay" aria-hidden="true"></div>
 
@@ -51,23 +53,34 @@
 
   <!-- Prompt-style header -->
   <header class="mb-8 flex items-center justify-between">
-    <div class="font-mono text-sm md:text-base text-dim select-none">
+    <div class="text-sm md:text-base text-dim select-none">
       <span class="text-accent">~</span>/typeApp
       <span id="prompt-path" class="text-ink"></span>
       <span class="cursor-caret" aria-hidden="true">▌</span>
     </div>
     <div class="flex items-center gap-3">
-      <span class="hidden sm:inline text-xs text-dim font-mono">best</span>
-      <span id="best-wpm-badge" class="font-mono text-xs px-2 py-1 rounded border border-edge bg-surface text-accent">— wpm</span>
+      <span class="hidden sm:inline text-xs text-dim tracking-wide">best</span>
+      <span id="best-wpm-badge" class="text-xs px-2 py-1 rounded-sm border border-edge bg-surface text-accent">— wpm</span>
     </div>
   </header>
 
   <!-- ===================== SCREEN 1: LANGUAGE PICKER ===================== -->
   <section id="picker-screen">
-    <h1 class="font-mono text-2xl md:text-3xl font-semibold text-ink mb-1">
-      choose a language<span class="text-accent">.</span>
+    <h1 class="text-2xl md:text-3xl font-bold text-ink mb-1 tracking-tight">
+      choose a language<span class="text-accent">_</span>
     </h1>
-    <p class="text-dim text-sm mb-8">Pick a file to start typing. More languages and snippets can be dropped into <code class="text-accent2 font-mono">js/data/snippets.js</code> anytime.</p>
+    <p class="text-dim text-sm mb-5">Pick a file to start typing. More languages and snippets can be dropped into <code class="text-accent2">js/data/snippets.js</code> anytime.</p>
+
+    <!-- Practice mode: bracket-style tabs, terminal-menu convention -->
+    <div class="flex items-center gap-3 mb-2 flex-wrap">
+      <span class="text-xs text-dim tracking-wide">mode</span>
+      <div id="mode-toggle" class="inline-flex items-center gap-1">
+        <button type="button" data-mode="random" class="mode-btn">[ practice ]</button>
+        <button type="button" data-mode="progression" class="mode-btn">[ progression ]</button>
+        <button type="button" data-mode="output" class="mode-btn">[ output ]</button>
+      </div>
+    </div>
+    <p id="mode-hint" class="text-dim text-xs mb-6"></p>
 
     <div id="language-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
       <!-- language file-cards injected by ui.js -->
@@ -80,49 +93,59 @@
     <!-- Controls -->
     <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
       <div class="flex items-center gap-2">
-        <label for="language-select" class="text-xs text-dim font-mono">lang</label>
+        <label for="language-select" class="text-xs text-dim tracking-wide">lang</label>
         <select
           id="language-select"
-          class="bg-surface border border-edge text-ink text-sm rounded px-2 py-1.5 font-mono focus:outline-none focus:ring-1 focus:ring-accent"
+          class="bg-surface border border-edge text-ink text-sm rounded-sm px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-accent"
         ></select>
       </div>
 
       <div class="flex items-center gap-2">
         <button
           id="back-to-picker"
-          class="text-xs font-mono text-dim hover:text-ink border border-edge rounded px-3 py-1.5 transition-colors"
+          class="text-xs text-dim hover:text-ink border border-edge rounded-sm px-3 py-1.5 transition-colors"
         >
-          ← files
+          &lt; files
         </button>
         <button
           id="reset-btn"
-          class="text-xs font-mono text-bg bg-accent hover:opacity-90 rounded px-3 py-1.5 transition-opacity font-medium"
+          class="text-xs text-bg bg-accent hover:opacity-90 rounded-sm px-3 py-1.5 transition-opacity font-semibold"
           title="Restart this snippet (Tab)"
         >
-          ⟲ restart <kbd class="hidden sm:inline opacity-70">tab</kbd>
+          restart <kbd class="hidden sm:inline opacity-70">tab</kbd>
         </button>
       </div>
     </div>
 
-    <!-- One-line "what this code does" teaser, shown before typing -->
-    <p id="snippet-description" class="text-dim text-xs font-mono mb-3"></p>
+    <!-- Track-complete note, shown once after finishing a language's last snippet -->
+    <p id="track-complete-note" class="hidden text-accent text-xs mb-2">*** track complete — looping back to the basics ***</p>
+
+    <!-- Output Challenge: the target output is shown up front as the goal -->
+    <div id="output-goal" class="hidden mb-4">
+      <p class="text-xs text-accent2 tracking-wide mb-1.5">target output — type the code that produces this</p>
+      <pre id="output-goal-text" class="terminal-frame bg-surface px-4 py-3 text-xs md:text-sm text-ok whitespace-pre-wrap overflow-x-auto"></pre>
+    </div>
+
+    <!-- One-line "what this code does" teaser + difficulty badge, shown before typing -->
+    <div class="flex items-start justify-between gap-3 mb-3">
+      <p id="snippet-description" class="text-dim text-xs"></p>
+      <span id="level-badge" class="hidden shrink-0 text-[10px] px-2 py-0.5 rounded-sm border whitespace-nowrap"></span>
+    </div>
 
     <!-- Editor pane -->
-    <div class="bg-surface border border-edge rounded-lg overflow-hidden shadow-2xl shadow-black/40 mb-4">
+    <div class="terminal-frame bg-surface overflow-hidden mb-4">
 
-      <!-- fake editor titlebar -->
+      <!-- editor titlebar: filename + a steady status LED, no fake window chrome -->
       <div class="flex items-center gap-2 px-4 py-2.5 bg-surface2 border-b border-edge">
-        <span class="w-2.5 h-2.5 rounded-full bg-err/70"></span>
-        <span class="w-2.5 h-2.5 rounded-full bg-ok/50"></span>
-        <span class="w-2.5 h-2.5 rounded-full bg-accent/50"></span>
-        <span id="editor-filename" class="ml-3 text-xs font-mono text-dim">snippet.txt</span>
+        <span class="status-led" aria-hidden="true"></span>
+        <span id="editor-filename" class="text-xs text-dim">snippet.txt</span>
       </div>
 
       <!-- snippet with gutter -->
       <div class="flex text-sm md:text-base leading-relaxed">
-        <div id="line-gutter" class="select-none text-right px-3 py-5 text-dim/60 font-mono bg-surface2/40 border-r border-edge"></div>
+        <div id="line-gutter" class="select-none text-right px-3 py-5 text-dim/60 bg-surface2/40 border-r border-edge"></div>
         <pre id="snippet" tabindex="0"
-          class="flex-1 px-4 py-5 font-mono whitespace-pre-wrap break-words outline-none overflow-x-auto"
+          class="flex-1 px-4 py-5 whitespace-pre-wrap break-words outline-none overflow-x-auto"
           aria-label="Code snippet to type"
         ></pre>
       </div>
@@ -140,69 +163,69 @@
       ></textarea>
 
       <!-- status bar (signature element) -->
-      <div class="flex items-stretch justify-between text-xs font-mono bg-accent text-bg">
+      <div class="flex items-stretch justify-between text-xs bg-accent text-bg border-t-2 border-bg/20">
         <div class="flex">
           <div class="px-3 py-1.5 flex items-center gap-1.5 border-r border-bg/20">
-            <span class="opacity-70">wpm</span><span id="wpm" class="font-semibold">0</span>
+            <span class="opacity-70">wpm</span><span id="wpm" class="font-bold">0</span>
           </div>
           <div class="px-3 py-1.5 flex items-center gap-1.5 border-r border-bg/20">
-            <span class="opacity-70">acc</span><span id="accuracy" class="font-semibold">100%</span>
+            <span class="opacity-70">acc</span><span id="accuracy" class="font-bold">100%</span>
           </div>
           <div class="px-3 py-1.5 flex items-center gap-1.5 border-r border-bg/20">
-            <span class="opacity-70">err</span><span id="errors" class="font-semibold">0</span>
+            <span class="opacity-70">err</span><span id="errors" class="font-bold">0</span>
           </div>
         </div>
         <div class="px-3 py-1.5 flex items-center gap-1.5">
-          <span id="timer" class="font-semibold">0.0s</span>
+          <span id="timer" class="font-bold">0.0s</span>
         </div>
       </div>
     </div>
 
-    <p id="typing-hint" class="text-center text-dim text-xs font-mono">click the code above and start typing to begin</p>
+    <p id="typing-hint" class="text-center text-dim text-xs">click the code above and start typing to begin</p>
   </section>
 
   <!-- ===================== SCREEN 3: RESULTS ===================== -->
   <section id="results-screen" class="hidden text-center">
-    <p class="font-mono text-accent text-xs mb-2 tracking-wide">// run complete</p>
-    <h1 class="font-mono text-3xl md:text-4xl font-bold mb-8">nice typing.</h1>
+    <p class="text-accent text-xs mb-2 tracking-wide">// run complete</p>
+    <h1 class="text-3xl md:text-4xl font-bold mb-8">nice typing.</h1>
 
     <div class="grid grid-cols-3 gap-3 mb-8 max-w-md mx-auto">
-      <div class="bg-surface border border-edge rounded-lg py-5">
-        <div id="result-wpm" class="font-mono text-3xl font-bold text-accent">0</div>
-        <div class="text-xs text-dim mt-1 font-mono">wpm</div>
+      <div class="terminal-frame bg-surface py-5">
+        <div id="result-wpm" class="text-3xl font-bold text-accent">0</div>
+        <div class="text-xs text-dim mt-1">wpm</div>
       </div>
-      <div class="bg-surface border border-edge rounded-lg py-5">
-        <div id="result-accuracy" class="font-mono text-3xl font-bold text-ok">100%</div>
-        <div class="text-xs text-dim mt-1 font-mono">accuracy</div>
+      <div class="terminal-frame bg-surface py-5">
+        <div id="result-accuracy" class="text-3xl font-bold text-ok">100%</div>
+        <div class="text-xs text-dim mt-1">accuracy</div>
       </div>
-      <div class="bg-surface border border-edge rounded-lg py-5">
-        <div id="result-errors" class="font-mono text-3xl font-bold text-err">0</div>
-        <div class="text-xs text-dim mt-1 font-mono">errors</div>
+      <div class="terminal-frame bg-surface py-5">
+        <div id="result-errors" class="text-3xl font-bold text-err">0</div>
+        <div class="text-xs text-dim mt-1">errors</div>
       </div>
     </div>
 
-    <p id="result-best-note" class="text-dim text-sm font-mono mb-8"></p>
+    <p id="result-best-note" class="text-dim text-sm mb-8"></p>
 
     <!-- What-it-does + sample output, revealed now that the snippet is typed -->
     <div class="max-w-lg mx-auto mb-8 text-left">
-      <p class="text-xs font-mono text-accent2 mb-1.5">// what that code does</p>
+      <p class="text-xs text-accent2 mb-1.5">// what that code does</p>
       <p id="result-explanation" class="text-ink text-sm leading-relaxed mb-5"></p>
 
-      <p class="text-xs font-mono text-accent2 mb-1.5">$ sample output</p>
-      <pre id="result-output" class="bg-surface border border-edge rounded-lg px-4 py-3 font-mono text-xs md:text-sm text-ok whitespace-pre-wrap overflow-x-auto"></pre>
+      <p class="text-xs text-accent2 mb-1.5">$ sample output</p>
+      <pre id="result-output" class="terminal-frame bg-surface px-4 py-3 text-xs md:text-sm text-ok whitespace-pre-wrap overflow-x-auto"></pre>
     </div>
 
     <div class="flex items-center justify-center gap-3">
-      <button id="retry-btn" class="font-mono text-sm bg-accent text-bg rounded px-4 py-2 font-medium hover:opacity-90">
-        ⟲ retry
+      <button id="retry-btn" class="text-sm bg-accent text-bg rounded-sm px-4 py-2 font-semibold hover:opacity-90">
+        retry
       </button>
-      <button id="new-snippet-btn" class="font-mono text-sm border border-edge text-ink rounded px-4 py-2 hover:border-accent">
+      <button id="new-snippet-btn" class="text-sm border border-edge text-ink rounded-sm px-4 py-2 hover:border-accent">
         next snippet →
       </button>
     </div>
   </section>
 
-  <footer class="mt-12 text-center text-dim text-xs font-mono">
+  <footer class="mt-12 text-center text-dim text-xs">
     built for typing practice, not for production. tab = restart.
   </footer>
 
