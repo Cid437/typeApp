@@ -791,10 +791,376 @@ maxOf(2.5, 1.1);  // 2.5`,
     ],
   },
 
+  bash: {
+    id: "bash",
+    name: "Bash (Linux / macOS)",
+    extension: ".sh",
+    accent: "#4EAA25",
+    snippets: [
+      {
+        level: "beginner",
+        code: `pwd`,
+        description: "Prints the current working directory's full path.",
+        explanation:
+          "pwd stands for \"print working directory\" and is usually the first command you run to orient yourself — it tells you exactly where in the filesystem your shell session currently is, which matters because relative paths (like ./file.txt) are resolved from here.",
+        output: `/Users/ada/projects/typeApp`,
+        predictedOutput: `/Users/ada/projects/typeApp`,
+      },
+      {
+        level: "beginner",
+        code: `ls -la`,
+        description: "Lists every file in the current directory, including hidden ones, with details.",
+        explanation:
+          "ls lists directory contents; -l switches to the long listing format showing permissions, owner, size, and modified date, while -a includes dotfiles (hidden entries starting with a period) that a plain ls would skip, like .gitignore.",
+        output:
+`drwxr-xr-x  6 ada  staff   192 Aug 12 09:14 .
+drwxr-xr-x  9 ada  staff   288 Aug 10 17:02 ..
+-rw-r--r--  1 ada  staff  1042 Aug 12 09:14 index.html
+drwxr-xr-x  4 ada  staff   128 Aug 11 20:31 js`,
+      },
+      {
+        level: "easy",
+        code: `mkdir project && cd project`,
+        description: "Creates a new directory and immediately moves into it.",
+        explanation:
+          "mkdir creates the project folder, and && only runs the following command if the first one succeeded — so cd project only fires once the directory actually exists. Chaining commands like this is a common shell habit for atomic \"create then enter\" steps.",
+        output: `# no output — the prompt's path now ends in /project`,
+      },
+      {
+        level: "easy",
+        code: `cp -r src/ backup/`,
+        description: "Recursively copies a whole directory tree to a new location.",
+        explanation:
+          "cp copies files, but by default it refuses to copy directories outright — the -r (recursive) flag tells it to walk into src/ and copy every file and subfolder inside it into backup/, preserving the directory structure.",
+        output: `# no output on success — backup/ now mirrors src/`,
+      },
+      {
+        level: "intermediate",
+        code: `grep -rn "TODO" ./src`,
+        description: "Recursively searches source files for a text pattern, with line numbers.",
+        explanation:
+          "grep scans file contents for lines matching a pattern; -r walks into every subdirectory of ./src, and -n prefixes each match with its line number so you can jump straight to it in an editor. It's the fastest way to find every leftover TODO across a codebase.",
+        output:
+`./src/app.js:42:  // TODO: handle empty state
+./src/utils.js:8:  // TODO: memoize this`,
+      },
+      {
+        level: "intermediate",
+        code: `find . -name "*.log" -mtime +7 -delete`,
+        description: "Finds and deletes log files older than a week.",
+        explanation:
+          "find walks the current directory tree; -name \"*.log\" filters to log files, -mtime +7 keeps only ones last modified more than 7 days ago, and -delete removes every file that matches all the preceding conditions. Flags in a find command act like a chained filter, left to right.",
+        output: `# no output — matching files are silently removed`,
+      },
+      {
+        level: "intermediate",
+        code: `chmod +x deploy.sh && ./deploy.sh`,
+        description: "Makes a script executable, then runs it.",
+        explanation:
+          "chmod changes a file's permission bits; +x adds execute permission for everyone, which most shell scripts need before they can be run directly. Once that succeeds, ./deploy.sh runs the script, with ./ required so the shell looks in the current directory instead of your PATH.",
+        output: `Deploying build to production...`,
+      },
+      {
+        level: "advanced",
+        code: `ps aux | grep node | awk '{print $2}'`,
+        description: "Lists the process IDs of every running node process.",
+        explanation:
+          "ps aux lists every running process with details like PID and command; piping into grep node filters that list down to lines mentioning node. awk '{print $2}' then splits each remaining line on whitespace and prints just the second column, which is the PID — a common three-stage pipeline for scripting process management.",
+        output:
+`4821
+6390`,
+      },
+      {
+        level: "advanced",
+        code: `tar -czvf backup.tar.gz ./data`,
+        description: "Bundles and compresses a directory into a single archive.",
+        explanation:
+          "tar combines files into a single archive; -c creates a new one, -z pipes it through gzip compression, -v prints each file as it's added (verbose), and -f names the output file. The result, backup.tar.gz, is the standard \"tarball\" format for distributing or backing up a directory tree.",
+        output:
+`./data/
+./data/users.json
+./data/config.yml`,
+      },
+      {
+        level: "expert",
+        code:
+`for f in *.txt; do
+  mv "$f" "\${f%.txt}.md"
+done`,
+        description: "Batch-renames every .txt file in the folder to .md.",
+        explanation:
+          "The loop binds f to each matching filename in turn. \${f%.txt} is parameter expansion that strips a trailing \".txt\" suffix off the value of f, and appending \".md\" builds the new name — so mv renames each file in place without ever touching the parts of the name before the extension.",
+        output: `# no output — notes.txt becomes notes.md, todo.txt becomes todo.md, etc.`,
+      },
+      {
+        level: "expert",
+        code: `cat access.log | awk '{print $1}' | sort | uniq -c | sort -rn | head -5`,
+        description: "Finds the top 5 most frequent IP addresses in a log file.",
+        explanation:
+          "This pipeline reads the log, extracts the first whitespace-separated field of every line (the IP), sorts those IPs so identical ones sit next to each other, collapses duplicates into counted lines with uniq -c, sorts numerically in reverse to put the highest counts first, and head -5 keeps only the top five — a classic \"count and rank\" shell one-liner.",
+        output:
+`  482 203.0.113.7
+  310 198.51.100.4
+  201 203.0.113.9
+   88 192.0.2.15
+   41 198.51.100.20`,
+      },
+    ],
+  },
+
+  powershell: {
+    id: "powershell",
+    name: "PowerShell (Windows)",
+    extension: ".ps1",
+    accent: "#5391FE",
+    snippets: [
+      {
+        level: "beginner",
+        code: `Get-Location`,
+        description: "Prints the current working directory.",
+        explanation:
+          "Get-Location is PowerShell's equivalent of pwd — it returns a path object describing where the current session is rooted in the filesystem, which relative paths are resolved against. Cmdlets like this follow PowerShell's Verb-Noun naming convention.",
+        output:
+`Path
+----
+C:\\Users\\Ada\\projects\\typeApp`,
+      },
+      {
+        level: "beginner",
+        code: `Get-ChildItem`,
+        description: "Lists files and folders in the current directory.",
+        explanation:
+          "Get-ChildItem (often aliased as ls or dir) returns the items — files and subdirectories — directly inside the current location as objects, complete with properties like Mode, LastWriteTime, and Length, not just plain text like older shells would print.",
+        output:
+`    Directory: C:\\Users\\Ada\\projects\\typeApp
+
+Mode    LastWriteTime     Length Name
+----    -------------     ------ ----
+d----   8/12/2026 9:14 AM        js
+-a---   8/12/2026 9:14 AM   1042 index.html`,
+      },
+      {
+        level: "easy",
+        code: `New-Item -ItemType Directory -Name project`,
+        description: "Creates a new folder in the current directory.",
+        explanation:
+          "New-Item is a general-purpose creation cmdlet; -ItemType Directory tells it to make a folder rather than a file, and -Name supplies the folder's name. It returns the newly created item as an object, which is why you see its details echoed back.",
+        output:
+`    Directory: C:\\Users\\Ada\\projects\\typeApp
+
+Mode    LastWriteTime     Length Name
+----    -------------     ------ ----
+d----   8/17/2026 2:03 PM        project`,
+      },
+      {
+        level: "easy",
+        code: `Copy-Item -Path .\\src -Destination .\\backup -Recurse`,
+        description: "Recursively copies a folder to a new location.",
+        explanation:
+          "Copy-Item duplicates files or folders; -Recurse is required to copy a directory's full contents rather than just an empty folder shell, mirroring src's structure and files into backup. Parameters in PowerShell are explicit and named, rather than relying on single-letter flags.",
+        output: `# no output on success — backup\\ now mirrors src\\`,
+      },
+      {
+        level: "intermediate",
+        code: `Get-Process | Where-Object { $_.CPU -gt 100 }`,
+        description: "Lists running processes using more than 100 CPU seconds.",
+        explanation:
+          "Get-Process returns every running process as an object with properties like CPU and Id. Piping into Where-Object filters that stream, keeping only objects where the condition is true; $_ refers to \"the current object in the pipeline\", so $_.CPU reads each process's CPU time.",
+        output:
+`Handles  NPM(K)    PM(K)      CPU(s)     Id  ProcessName
+-------  ------    -----      ------     --  -----------
+    842      41   210532      184.22   6390  node
+    511      28   142880      131.05   4821  chrome`,
+      },
+      {
+        level: "intermediate",
+        code: `Get-ChildItem -Recurse -Filter *.log`,
+        description: "Finds every .log file anywhere under the current folder.",
+        explanation:
+          "-Recurse tells Get-ChildItem to descend into every subdirectory instead of only listing the top level, and -Filter *.log narrows results to files matching that wildcard pattern before they're even returned, which is faster than filtering afterward with Where-Object.",
+        output:
+`    Directory: C:\\Users\\Ada\\projects\\typeApp\\logs
+
+Mode    LastWriteTime     Length Name
+----    -------------     ------ ----
+-a---   8/16/2026 6:40 PM   8213 error.log
+-a---   8/17/2026 1:10 PM   4029 access.log`,
+      },
+      {
+        level: "advanced",
+        code: `Get-Content log.txt | Select-String "ERROR"`,
+        description: "Prints every line in a log file that contains the word ERROR.",
+        explanation:
+          "Get-Content streams a text file's contents line by line into the pipeline, and Select-String acts like a PowerShell-native grep, matching each line against the given pattern and returning only the lines (with match info) that succeed.",
+        output:
+`log.txt:14:[ERROR] connection timed out
+log.txt:88:[ERROR] invalid token`,
+      },
+      {
+        level: "advanced",
+        code: `Get-ChildItem *.txt | Rename-Item -NewName { $_.Name -replace '\\.txt$','.md' }`,
+        description: "Batch-renames every .txt file in the folder to .md.",
+        explanation:
+          "Get-ChildItem *.txt streams matching files into the pipeline, and Rename-Item's -NewName accepts a script block evaluated once per item; inside it, $_ is the current file object and -replace swaps the trailing .txt extension for .md on each one.",
+        output: `# no output — notes.txt becomes notes.md, todo.txt becomes todo.md, etc.`,
+      },
+      {
+        level: "expert",
+        code:
+`function Get-TopWords {
+    param([string]$Path, [int]$Top = 5)
+    Get-Content $Path -Raw -Split '\\W+' |
+      Group-Object | Sort-Object Count -Descending |
+      Select-Object -First $Top
+}`,
+        description: "A reusable function returning the most frequent words in a file.",
+        explanation:
+          "The function declares typed parameters with a default value for $Top, splits the file's raw text on non-word characters, groups identical tokens together with Group-Object (which counts them automatically), sorts by that Count descending, and keeps only the first $Top groups — a full word-frequency pipeline wrapped in a reusable function.",
+        output:
+`Get-TopWords -Path notes.txt -Top 3
+
+Count Name
+----- ----
+   42 the
+   19 project
+   12 deploy`,
+      },
+      {
+        level: "expert",
+        code: `Get-Process | Sort-Object CPU -Descending | Select-Object -First 5 Name,CPU | Export-Csv top5.csv -NoTypeInformation`,
+        description: "Exports the top 5 CPU-heaviest processes to a CSV file.",
+        explanation:
+          "This pipeline sorts all running processes by CPU time descending, keeps just the top 5 with only their Name and CPU columns, and writes that to top5.csv. -NoTypeInformation drops PowerShell's usual '#TYPE' metadata header, producing a plain, spreadsheet-friendly CSV.",
+        output: `# no console output — top5.csv is written to the current folder`,
+      },
+    ],
+  },
+
+  cmd: {
+    id: "cmd",
+    name: "Windows CMD",
+    extension: ".bat",
+    accent: "#c1c1c1",
+    snippets: [
+      {
+        level: "beginner",
+        code: `dir`,
+        description: "Lists the files and folders in the current directory.",
+        explanation:
+          "dir is the Command Prompt's built-in directory-listing command, printing each entry's size, type, and last-modified date, along with a summary of total files and free disk space at the end — the CMD equivalent of ls in Unix shells.",
+        output:
+` Volume in drive C has no label.
+
+08/17/2026  02:03 PM    <DIR>          js
+08/12/2026  09:14 AM             1,042 index.html
+               1 File(s)          1,042 bytes`,
+      },
+      {
+        level: "beginner",
+        code: `cd`,
+        description: "Prints the current directory path.",
+        explanation:
+          "Run with no arguments, cd (short for \"change directory\") simply prints the current working directory instead of changing it — useful for quickly checking where you are before running a relative-path command.",
+        output: `C:\\Users\\Ada\\projects\\typeApp`,
+        predictedOutput: `C:\\Users\\Ada\\projects\\typeApp`,
+      },
+      {
+        level: "easy",
+        code: `mkdir project`,
+        description: "Creates a new folder in the current directory.",
+        explanation:
+          "mkdir (aliased to md) creates a new directory with the given name inside the current location. Unlike some Unix mkdir implementations, it will also create any missing parent folders in the path automatically.",
+        output: `# no output on success — the "project" folder now exists`,
+      },
+      {
+        level: "easy",
+        code: `copy file.txt backup.txt`,
+        description: "Copies a file to a new name in the same folder.",
+        explanation:
+          "copy duplicates the source file's contents into the destination name; if backup.txt doesn't exist yet, it's created, and if it does, CMD will prompt before overwriting it. This is the most basic file-duplication command in the Windows shell.",
+        output: `        1 file(s) copied.`,
+        predictedOutput: `        1 file(s) copied.`,
+      },
+      {
+        level: "intermediate",
+        code: `dir /s *.txt`,
+        description: "Recursively lists every .txt file under the current folder.",
+        explanation:
+          "The /s switch tells dir to search the current directory and every subdirectory beneath it, not just the top level, while *.txt restricts the listing to files matching that extension — handy for locating scattered text files across a project tree.",
+        output:
+`Directory of C:\\Users\\Ada\\projects\\typeApp\\notes
+
+08/15/2026  10:22 AM               812 todo.txt`,
+      },
+      {
+        level: "intermediate",
+        code: `findstr "error" log.txt`,
+        description: "Prints every line in a file containing the word 'error'.",
+        explanation:
+          "findstr is CMD's built-in text-search command, similar to grep — it scans log.txt line by line and prints only the lines containing the given string. By default the match is case-sensitive unless the /i switch is added.",
+        output:
+`14:connection failed: socket error
+88:invalid token error`,
+      },
+      {
+        level: "advanced",
+        code: `for %i in (*.txt) do echo %i`,
+        description: "Loops over every .txt file and prints its name.",
+        explanation:
+          "The for loop expands *.txt into each matching filename in turn, binding it to the loop variable %i, and echo %i prints that name on its own line. In a saved .bat script file the variable would be written %%i instead, since a single percent sign is only valid when typed directly at the prompt.",
+        output:
+`notes.txt
+todo.txt`,
+        predictedOutput:
+`notes.txt
+todo.txt`,
+      },
+      {
+        level: "advanced",
+        code: `netstat -an | findstr LISTEN`,
+        description: "Lists all network ports currently listening for connections.",
+        explanation:
+          "netstat -an prints every active network connection and listening port in numeric form (no hostname lookups, thanks to -n). Piping into findstr LISTEN narrows that output down to only the ports in the LISTENING state, which is useful for checking what's bound before starting a local server.",
+        output:
+`  TCP    0.0.0.0:3000           0.0.0.0:0              LISTENING
+  TCP    0.0.0.0:5432           0.0.0.0:0              LISTENING`,
+      },
+      {
+        level: "expert",
+        code:
+`if exist file.txt (
+    echo found
+) else (
+    echo missing
+)`,
+        description: "Branches based on whether a file exists.",
+        explanation:
+          "if exist checks whether the given path is present on disk, and the parenthesized blocks work like an if/else — only the block matching the condition's result runs. Batch scripting's if/else syntax needs both branches wrapped in parentheses on the same logical statement, unlike most other languages.",
+        output: `found`,
+        predictedOutput: `found`,
+      },
+      {
+        level: "expert",
+        code:
+`@echo off
+set count=0
+for %%f in (*.log) do (
+    set /a count+=1
+)
+echo Total log files: %count%`,
+        description: "A batch script that counts how many .log files are present.",
+        explanation:
+          "@echo off suppresses CMD from printing each command before running it, keeping output clean. The for loop iterates every matching .log file (using %%f since this runs from a saved script, not the prompt) and set /a count+=1 increments a numeric counter each pass, which is finally echoed out.",
+        output: `Total log files: 3`,
+        predictedOutput: `Total log files: 3`,
+      },
+    ],
+  },
+
 };
 
 // Controls the order languages appear in the picker + dropdown.
-const LANGUAGE_ORDER = ["javascript", "python", "html", "cpp"];
+const LANGUAGE_ORDER = ["javascript", "python", "html", "cpp", "bash", "powershell", "cmd"];
 
 /** Returns a random snippet object for a language (any level) — used by Random mode. */
 function getRandomSnippet(languageId) {
